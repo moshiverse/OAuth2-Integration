@@ -34,23 +34,32 @@ This project supports:
 ## 📁 Project Structure
 
 ```
-oauth2integration/
-├─ src/
-│ └─ main/
-│ ├─ java/
-│ │ └─ edu/
-│ │ └─ cit/
-│ │ └─ johnjosephlaborada/
-│ │ └─ oauth2integration/
-│ │ ├─ controller/
-│ │ ├─ model/
-│ │ ├─ repository/
-│ │ └─ service/
-│ └─ resources/
-│ ├─ static/
-│ ├─ templates/
-│ └─ application.properties
-└─ pom.xml (or build.gradle)
+src/
+└─ main/
+   ├─ java/
+   │  └─ edu/
+   │     └─ cit/
+   │        └─ johnjosephlaborada/
+   │           └─ oauth2integration/
+   │              ├─ controller/
+   │              │   ├─ HomeController.java
+   │              │   └─ ProfileController.java
+   │              ├─ model/
+   │              │   ├─ User.java
+   │              │   └─ AuthProvider.java
+   │              ├─ repository/
+   │              │   ├─ UserRepository.java
+   │              │   └─ AuthProviderRepository.java
+   │              └─ service/
+   │                  ├─ UserService.java
+   │                  └─ AuthService.java
+   └─ resources/
+      ├─ static/
+      ├─ templates/
+      │   ├─ home.html
+      │   └─ profile.html
+      └─ application.properties
+└─ pom.xml
 ```
 
 ## ⚙️ How to Run
