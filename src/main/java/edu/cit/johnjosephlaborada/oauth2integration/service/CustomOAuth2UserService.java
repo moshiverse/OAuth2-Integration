@@ -20,21 +20,6 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.*;
 
-/**
- * CustomOAuth2UserService - full, commented "learning" edition.
- *
- * Responsibilities:
- *  - Load provider attributes (Google / GitHub)
- *  - Normalize and obtain an email (including GitHub's /user/emails if needed)
- *  - If an AuthProvider exists for (provider, providerUserId) -> return linked user
- *  - Else if a User exists with same email -> MERGE: create AuthProvider linking to that User
- *  - Else -> create new User and AuthProvider (first-time registration)
- *
- * Important behavior notes:
- *  - Provider values are normalized to uppercase in AuthProvider records ("GOOGLE", "GITHUB").
- *  - When provider reports email changes, the auth record and (optionally) the user email are updated.
- *  - The method is transactional to avoid partial writes in merge/creation flows.
- */
 @Service
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
