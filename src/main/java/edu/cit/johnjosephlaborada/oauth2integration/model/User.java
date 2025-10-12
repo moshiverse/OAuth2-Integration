@@ -3,14 +3,6 @@ package edu.cit.johnjosephlaborada.oauth2integration.model;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
-/**
- * User entity for storing application users (one row per logical user).
- *
- * Fields:
- * - email is unique (used for merging provider accounts)
- * - displayName, avatarUrl, bio stored for profile
- * - createdAt / updatedAt set automatically via @PrePersist / @PreUpdate
- */
 @Entity
 @Table(name = "users", indexes = {
         @Index(name = "idx_users_email", columnList = "email")
@@ -46,7 +38,6 @@ public class User {
         this.updatedAt = LocalDateTime.now();
     }
 
-    // --- Getters & Setters ---
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 

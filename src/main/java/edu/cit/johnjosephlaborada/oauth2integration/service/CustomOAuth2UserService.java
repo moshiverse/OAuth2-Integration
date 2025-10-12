@@ -50,25 +50,16 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         this.authProviderRepository = authProviderRepository;
     }
 
-    /**
-     * Primary entry point called by Spring Security during OAuth2 login.
-     * Marked @Transactional so creation/merge of user + authProvider happens atomically.
-     */
     @Override
     @Transactional
     public OAuth2User loadUser(OAuth2UserRequest userRequest) {
-        // 1) Delegate to the default service to fetch provider attributes
         OAuth2User oauth2User = super.loadUser(userRequest);
 
-        // registrationId is configured in application.properties (google | github)
         String rawProvider = userRequest.getClientRegistration().getRegistrationId();
         String provider = rawProvider == null ? "unknown" : rawProvider.toLowerCase(Locale.ROOT);
 
-        // Make a mutable copy of attributes so we can enrich/normalize them before returning principal
         Map<String, Object> attributes = new HashMap<>(oauth2User.getAttributes());
 
-        // 2) Extract provider user id (provider-specific attribute names)
-        //    Google: "sub", GitHub: "id"
         String providerUserId = null;
         if ("google".equals(provider)) {
             Object sub = attributes.get("sub");
@@ -77,29 +68,24 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             Object id = attributes.get("id");
             providerUserId = id == null ? null : String.valueOf(id);
         } else {
-            // Fallback: try common attributes (not expected in this app)
             Object id = attributes.get("id");
             providerUserId = id == null ? null : String.valueOf(id);
         }
 
-        // 3) Obtain email: providers usually include it, but GitHub may not in /user
         String email = null;
         if (attributes.get("email") != null) {
             email = String.valueOf(attributes.get("email"));
         }
 
-        // 4) For GitHub, if email missing, call /user/emails to find a primary/verified email
         if ("github".equals(provider) && (email == null || email.isBlank())) {
             String token = userRequest.getAccessToken().getTokenValue();
             String fetched = fetchPrimaryEmailFromGithub(token);
             if (fetched != null && !fetched.isBlank()) {
                 email = fetched;
-                // also place it into attributes so the principal can show it immediately
                 attributes.put("email", email);
             }
         }
 
-        // 5) Deterministic fallback email to keep DB unique constraints happy if provider gives no email
         if (email == null || email.isBlank()) {
             if (providerUserId != null && !providerUserId.isBlank()) {
                 email = provider + "_" + providerUserId + "@no-email.local";
@@ -109,45 +95,34 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             attributes.put("email", email);
         }
 
-        // Normalize provider names used in DB (AuthProvider.provider) for consistency
         String providerKey = provider.toUpperCase(Locale.ROOT);
         String providerUserIdKey = providerUserId == null ? "" : providerUserId;
 
-        // 6) Attempt to find an existing AuthProvider mapping for (provider, providerUserId)
         Optional<AuthProvider> authProviderOpt = authProviderRepository
                 .findByProviderAndProviderUserId(providerKey, providerUserIdKey);
 
         User user;
 
         if (authProviderOpt.isPresent()) {
-            // Case A: provider account already linked to a user
             AuthProvider existingAuth = authProviderOpt.get();
             user = existingAuth.getUser();
 
-            // If provider supplied an email that's different from stored providerEmail, update it
             if (email != null && !email.equals(existingAuth.getProviderEmail())) {
                 existingAuth.setProviderEmail(email);
                 authProviderRepository.save(existingAuth);
             }
 
-            // Optionally keep User.email in sync if provider's email changed:
-            // - If the user's email differs and the provider email is more "authoritative", update it.
-            // - This decision depends on your business rules. Here we update user.email if different.
             if (email != null && !email.equals(user.getEmail())) {
                 user.setEmail(email);
                 userRepository.save(user);
             }
 
         } else {
-            // Case B: no existing provider mapping for this provider account
-            // Try to find a local User by email. If found -> MERGE (attach new AuthProvider)
             Optional<User> userByEmailOpt = userRepository.findByEmail(email);
 
             if (userByEmailOpt.isPresent()) {
-                // MERGE: existing user with same email found -> link provider account
                 user = userByEmailOpt.get();
 
-                // Avoid creating duplicate AuthProvider entries for same user+provider:
                 Optional<AuthProvider> existingForUserProvider = authProviderRepository.findByUserAndProvider(user, providerKey);
                 if (existingForUserProvider.isEmpty()) {
                     AuthProvider linked = new AuthProvider();
@@ -157,8 +132,6 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                     linked.setUser(user);
                     authProviderRepository.save(linked);
                 } else {
-                    // There is already an auth record for this user and provider (rare if previous was by userId),
-                    // ensure providerUserId and providerEmail are set/updated
                     AuthProvider existing = existingForUserProvider.get();
                     boolean changed = false;
                     if ((existing.getProviderUserId() == null || existing.getProviderUserId().isBlank())
@@ -174,14 +147,9 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                 }
 
             } else {
-                // Case C: brand new user (first-time sign in with this provider)
                 User newUser = new User();
                 newUser.setEmail(email);
 
-                // Determine displayName priority:
-                // 1) attributes.name (Google usually)
-                // 2) attributes.login (GitHub username)
-                // 3) fallback readable provider label
                 String displayName;
                 if (attributes.get("name") != null && !String.valueOf(attributes.get("name")).isBlank()) {
                     displayName = String.valueOf(attributes.get("name"));
@@ -193,7 +161,6 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                 }
                 newUser.setDisplayName(displayName);
 
-                // Avatar priority: picture (Google) -> avatar_url (GitHub)
                 String avatarUrl = null;
                 if (attributes.get("picture") != null && !String.valueOf(attributes.get("picture")).isBlank()) {
                     avatarUrl = String.valueOf(attributes.get("picture"));
@@ -202,10 +169,8 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                 }
                 newUser.setAvatarUrl(avatarUrl);
 
-                // Persist user first (so AuthProvider can point to a persisted user)
                 user = userRepository.save(newUser);
 
-                // Persist AuthProvider linking this provider account to the newly created user
                 AuthProvider authProvider = new AuthProvider();
                 authProvider.setProvider(providerKey);
                 authProvider.setProviderUserId(providerUserIdKey);
@@ -215,13 +180,11 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             }
         }
 
-        // 7) Build principal attributes from DB-backed user to ensure page displays persisted values
         Map<String, Object> principalAttrs = new HashMap<>(attributes);
         principalAttrs.put("email", user.getEmail());            // ensure DB email is authoritative
         principalAttrs.put("name", user.getDisplayName());      // show persisted displayName
         principalAttrs.put("avatar_url", user.getAvatarUrl());  // show persisted avatar
 
-        // 8) Return a DefaultOAuth2User with ROLE_USER and "email" as the name attribute
         return new DefaultOAuth2User(
                 Collections.singleton(new SimpleGrantedAuthority("ROLE_USER")),
                 principalAttrs,
@@ -229,17 +192,6 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         );
     }
 
-    /**
-     * GitHub may not return an email in the /user response (user might keep email private).
-     * This helper calls the /user/emails endpoint and returns:
-     *  - primary && verified email if present
-     *  - else first verified email
-     *  - else first available email
-     *
-     * If anything fails we return null (caller will fall back to deterministic email).
-     *
-     * Note: in production you'd want to paginate and handle rate limits / errors properly.
-     */
     private String fetchPrimaryEmailFromGithub(String accessToken) {
         try {
             String url = "https://api.github.com/user/emails";
@@ -255,7 +207,6 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                         new TypeReference<List<Map<String, Object>>>() {
                         });
 
-                // 1) prefer primary + verified
                 for (Map<String, Object> m : emails) {
                     Object primaryObj = m.get("primary");
                     Object verifiedObj = m.get("verified");
@@ -267,7 +218,6 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                     }
                 }
 
-                // 2) prefer any verified
                 for (Map<String, Object> m : emails) {
                     Object verifiedObj = m.get("verified");
                     Object emailObj = m.get("email");
@@ -277,7 +227,6 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                     }
                 }
 
-                // 3) fallback to first available
                 if (!emails.isEmpty()) {
                     Object emailObj = emails.get(0).get("email");
                     if (emailObj != null) {
@@ -286,7 +235,6 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                 }
             }
         } catch (Exception ex) {
-            // Log the exception; return null and let caller use fallback strategy
             log.warn("Unable to fetch GitHub emails: {}", ex.getMessage());
             log.debug("Full exception fetching GitHub emails", ex);
         }

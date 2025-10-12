@@ -23,10 +23,8 @@ public class ProfileController {
             return "redirect:/";
         }
 
-        // We use the 'email' principal attribute (our CustomOAuth2UserService ensures it's present)
         String email = principal.getAttribute("email");
         if (email == null) {
-            // fallback: some providers expose 'login' etc. but merging logic uses email so this is rare
             email = principal.getAttribute("login");
         }
 
@@ -38,7 +36,6 @@ public class ProfileController {
             model.addAttribute("picture", user.getAvatarUrl());
             model.addAttribute("name", user.getDisplayName());
         } else {
-            // fallback to OAuth2 attributes if DB row missing (shouldn't happen after merging logic)
             model.addAttribute("displayName", principal.getAttribute("name"));
             model.addAttribute("bio", "");
             model.addAttribute("email", principal.getAttribute("email"));
@@ -63,7 +60,6 @@ public class ProfileController {
             userRepository.save(user);
         });
 
-        // Redirect to reload values from DB
         return "redirect:/profile";
     }
 }

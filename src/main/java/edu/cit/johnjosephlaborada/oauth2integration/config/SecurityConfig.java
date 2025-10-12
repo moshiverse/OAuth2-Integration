@@ -32,9 +32,9 @@ public class SecurityConfig {
                         .logoutSuccessUrl("/")
                         .permitAll()
                 )
-                // ✅ FIX: Disable CSRF for /h2-console/**
+                //FIX: Disable CSRF for /h2-console/**
                 .csrf(csrf -> csrf.ignoringRequestMatchers("/h2-console/**"))
-                // ✅ Allow H2 frames
+                //Allow H2 frames
                 .headers(headers -> headers
                         .frameOptions(frame -> frame.sameOrigin())
                 );

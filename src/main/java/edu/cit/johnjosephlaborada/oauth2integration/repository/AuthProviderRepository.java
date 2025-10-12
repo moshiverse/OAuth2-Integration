@@ -6,10 +6,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
 
-/**
- * Handles lookup of OAuth provider accounts (Google / GitHub).
- * Used to check if a provider is already linked to a user.
- */
 public interface AuthProviderRepository extends JpaRepository<AuthProvider, Long> {
 
     Optional<AuthProvider> findByProviderAndProviderUserId(String provider, String providerUserId);

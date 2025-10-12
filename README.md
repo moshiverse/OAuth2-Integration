@@ -48,7 +48,7 @@ GITHUB_CLIENT_ID=#YOUR_CLIENT_ID_GITHUB
 GITHUB_CLIENT_SECRET=#YOUR_CLIENT_SECRET_GITHUB
 
 
-*(You can obtain these credentials from Google Cloud Cons ole and GitHub Developer Settings.)*
+*(You can obtain these credentials from Google Cloud Console and GitHub Developer Settings.)*
 
 Google: https://console.cloud.google.com/
 
@@ -83,7 +83,7 @@ Open [http://localhost:8080](http://localhost:8080)
 
 ---
 
-## Author
+## 🧠 Author
 **John Joseph Laborada**  
 CIT-U | IT342 – System Integration & Architecture  
 October 2025
