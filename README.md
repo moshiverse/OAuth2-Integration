@@ -3,6 +3,7 @@
 ## 📘 Overview
 A Spring Boot application demonstrating OAuth2 login with Google and GitHub.  
 This project supports:
+
 - Automatic user provisioning on first login
 - Linking subsequent logins to the same user
 - Viewing and editing user profiles
@@ -13,8 +14,10 @@ This project supports:
 - Session-based authentication (no JWT)
 - Profile management: view and update display name and bio
 - CSRF protection enabled on all forms
+- Error handling for failed logins and invalid form submissions
 
 ## 🗂️ Domain Model
+
 ### User
 - id
 - email
@@ -31,58 +34,47 @@ This project supports:
 - providerUserId
 - providerEmail
 
-## 📁 Project Structure
+```text
+📂 oauth2integration/
+├─ 📂 src/
+│  └─ 📂 main/
+│     ├─ 📂 java/
+│     │  └─ 📂 edu/
+│     │     └─ 📂 cit/
+│     │        └─ 📂 johnjosephlaborada/
+│     │           └─ 📂 oauth2integration/
+│     │              ├─ 📂 controller/
+│     │              ├─ 📂 model/
+│     │              ├─ 📂 repository/
+│     │              └─ 📂 service/
+│     └─ 📂 resources/
+│        ├─ 📂 static/
+│        ├─ 📂 templates/
+│        └─ 📄 application.properties
+└─ 📄 pom.xml (or build.gradle)
+```
 
-```
-src/
-└─ main/
-   ├─ java/
-   │  └─ edu/
-   │     └─ cit/
-   │        └─ johnjosephlaborada/
-   │           └─ oauth2integration/
-   │              ├─ controller/
-   │              │   ├─ HomeController.java
-   │              │   └─ ProfileController.java
-   │              ├─ model/
-   │              │   ├─ User.java
-   │              │   └─ AuthProvider.java
-   │              ├─ repository/
-   │              │   ├─ UserRepository.java
-   │              │   └─ AuthProviderRepository.java
-   │              └─ service/
-   │                  ├─ UserService.java
-   │                  └─ AuthService.java
-   └─ resources/
-      ├─ static/
-      ├─ templates/
-      │   ├─ home.html
-      │   └─ profile.html
-      └─ application.properties
-└─ pom.xml
-```
 
 ## ⚙️ How to Run
+
 ### 1️⃣ Configure Environment Variables
 Set the following in your IntelliJ Run Configuration or `.env` file:
 
 GOOGLE_CLIENT_ID=#YOUR_CLIENT_ID_GOOGLE
-
 GOOGLE_CLIENT_SECRET=#YOUR_CLIENT_SECRET_GOOGLE
-
 GITHUB_CLIENT_ID=#YOUR_CLIENT_ID_GITHUB
-
 GITHUB_CLIENT_SECRET=#YOUR_CLIENT_SECRET_GITHUB
 
 
-Google: https://console.cloud.google.com/  
-GitHub: https://github.com/settings/developers
+- Google: [https://console.cloud.google.com/](https://console.cloud.google.com/)
+- GitHub: [https://github.com/settings/developers](https://github.com/settings/developers)
 
 ### 2️⃣ Run Application
-Run the main class in Spring Boot.
+- Run the main class in Spring Boot via IntelliJ or use:  
+  mvn spring-boot:run
 
 ### 3️⃣ Access Application
-Open [http://localhost:8080](http://localhost:8080)
+- Open [http://localhost:8080](http://localhost:8080)
 
 ## 🌐 Endpoints
 | Method | Endpoint    | Description                  | Auth Required |
@@ -97,14 +89,20 @@ Open [http://localhost:8080](http://localhost:8080)
 - GitHub may not return email by default; the app fetches emails from `/user/emails`.
 - CSRF protection is enabled; all forms include a CSRF token.
 - Session-based authentication only (JWT not used).
+- Error handling included for invalid logins and profile updates.
+
+## 🏗️ Architecture Diagram
+*(Insert a simple diagram showing OAuth2 flow, services, controllers, and database here)*
 
 ## 🏆 Milestones Achieved
-- Milestone 1: OAuth2 login works with Google and GitHub
+- Milestone 1: OAuth2 login works with one provider (Google or GitHub)
 - Milestone 2: Both providers work, user data persisted, profile page protected
 - Final: Profile editing, CSRF protection, error handling included
+
+## 🖼️ Screenshots
+*(Add screenshots of login pages and profile page here)*
 
 ## Author
 John Joseph Laborada  
 CIT-U | IT342 – System Integration & Architecture  
 October 2025
-
