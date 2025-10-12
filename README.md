@@ -33,7 +33,7 @@ This project supports:
 
 ## 📁 Project Structure
 
-
+```
 oauth2integration/
 ├─ src/
 │ └─ main/
@@ -51,7 +51,7 @@ oauth2integration/
 │ ├─ templates/
 │ └─ application.properties
 └─ pom.xml (or build.gradle)
-
+```
 
 ## ⚙️ How to Run
 ### 1️⃣ Configure Environment Variables
