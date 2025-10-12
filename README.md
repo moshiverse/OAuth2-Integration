@@ -67,8 +67,11 @@ src/
 Set the following in your IntelliJ Run Configuration or `.env` file:
 
 GOOGLE_CLIENT_ID=#YOUR_CLIENT_ID_GOOGLE
+
 GOOGLE_CLIENT_SECRET=#YOUR_CLIENT_SECRET_GOOGLE
+
 GITHUB_CLIENT_ID=#YOUR_CLIENT_ID_GITHUB
+
 GITHUB_CLIENT_SECRET=#YOUR_CLIENT_SECRET_GITHUB
 
 
@@ -99,9 +102,6 @@ Open [http://localhost:8080](http://localhost:8080)
 - Milestone 1: OAuth2 login works with Google and GitHub
 - Milestone 2: Both providers work, user data persisted, profile page protected
 - Final: Profile editing, CSRF protection, error handling included
-
-## 🖼️ Screenshots
-*(Add screenshots of login pages and profile page here)*
 
 ## Author
 John Joseph Laborada  
