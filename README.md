@@ -34,6 +34,7 @@ This project supports:
 - providerUserId
 - providerEmail
 
+## Project Structure
 ```text
 📂 oauth2integration/
 ├─ 📂 src/
