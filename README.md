@@ -157,40 +157,40 @@ spring.datasource.password=
 ## 🧩 Architecture Diagram
 
 ```mermaid
-graph TD
-
+graph TB
 %% === CLIENT SIDE ===
     User["👤 User (Browser)"]
-    Home["home.html (Login Page)"]
-    Profile["profile.html (User Profile)"]
+    Home["🏠 GET / (Login Page)"]
+    Profile["👤 /profile (View & Edit Profile)"]
+    Logout["🚪 /logout (End Session)"]
 
 %% === SPRING BOOT APPLICATION ===
-    subgraph SpringBootApp["Spring Boot Application"]
+    subgraph SpringBootApp["🟢 Spring Boot Application"]
         Controller["🌐 Controller<br>(HomeController, ProfileController)"]
-        Security["🔒 Spring Security<br>(OAuth2 Login Flow)"]
-        Service["🧠 OAuth2UserService<br>(Processes User Info)"]
-        Repository["💾 JPA Repository<br>(UserRepository)"]
-        DB["🗄️ Database<br>(H2 / MySQL)"]
+        Security["🔒 Spring Security<br>(OAuth2 Login Flow - Session Based)"]
+        Service["🧠 OAuth2UserService<br>(Processes & Maps User Info)"]
+        Repository["💾 JPA Repository<br>(UserRepository, AuthProviderRepository)"]
+        DB["🗄️ Database<br>(User, AuthProvider)"]
     end
 
 %% === OAUTH2 PROVIDERS ===
-    subgraph Providers["OAuth2 Providers"]
-        Google["🌍 Google OAuth2"]
-        GitHub["🐙 GitHub OAuth2"]
+    subgraph Providers["🌍 OAuth2 Providers"]
+        Google["Google OAuth2"]
+        GitHub["GitHub OAuth2"]
     end
 
 %% === FLOW ===
-    User -->|Accesses| Home
-    Home -->|Clicks “Login with Google / GitHub”| Security
-    Security -->|Redirects for Authentication| Providers
-    Providers -->|Returns OAuth Token + User Info| Security
+    User -->|Access| Home
+    Home -->|Login via Google/GitHub| Security
+    Security -->|Auth Redirect| Providers
+    Providers -->|OAuth Token + User Info| Security
     Security --> Service
-    Service -->|Store or Update User| Repository
+    Service -->|Save/Update User| Repository
     Repository --> DB
-    Controller -->|Render Profile Page| Profile
+    Controller -->|Render Profile| Profile
     Profile --> User
-
-
+    User -->|Logout| Logout
+    Logout -->|Invalidate Session| Security
 
 ```
 
