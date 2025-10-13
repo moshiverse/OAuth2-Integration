@@ -54,7 +54,6 @@ oauth2-integration/
 ```
 
 ## Getting Started
-
 ### Prerequisites
 
 - JDK 21 installed
@@ -160,42 +159,40 @@ spring.datasource.password=
 ```mermaid
 graph TD
 
-%% ==== CLIENT SIDE ====
-A[User Browser] -->|Accesses Home Page ("/")| B[Spring Boot Application]
+%% === CLIENT SIDE ===
+    User["👤 User (Browser)"]
+    Home["home.html (Login Page)"]
+    Profile["profile.html (User Profile)"]
 
-%% ==== BACKEND SPRING BOOT ====
-subgraph Backend [Spring Boot Application]
-    B -->|Thymeleaf Views| C[Home.html / Profile.html]
+%% === SPRING BOOT APPLICATION ===
+    subgraph SpringBootApp["Spring Boot Application"]
+        Controller["🌐 Controller<br>(HomeController, ProfileController)"]
+        Security["🔒 Spring Security<br>(OAuth2 Login Flow)"]
+        Service["🧠 OAuth2UserService<br>(Processes User Info)"]
+        Repository["💾 JPA Repository<br>(UserRepository)"]
+        DB["🗄️ Database<br>(H2 / MySQL)"]
+    end
 
-    %% Authentication Flow
-    B -->|OAuth2 Redirect| D[Spring Security OAuth2 Client]
-    D -->|Authorize User| E1[Google OAuth2 Server]
-    D -->|Authorize User| E2[GitHub OAuth2 Server]
-    
-    %% After Login
-    D -->|User Info (email, name, avatar)| F[OAuth2UserService]
-    F -->|Check or Create Record| G[(MySQL / H2 Database)]
-    
-    %% Domain Model
-    G --> H[User Table\n(id, email, displayName, avatarUrl, bio, createdAt, updatedAt)]
-    G --> I[AuthProvider Table\n(id, userId, provider, providerUserId, providerEmail)]
-    
-    %% Profile Management
-    B -->|GET /profile, POST /profile| J[ProfileController]
-    J -->|Read/Update| G
-end
+%% === OAUTH2 PROVIDERS ===
+    subgraph Providers["OAuth2 Providers"]
+        Google["🌍 Google OAuth2"]
+        GitHub["🐙 GitHub OAuth2"]
+    end
 
-%% ==== LOGOUT FLOW ====
-A -->|Logout (/logout)| B
-B -->|Invalidate Session & Redirect| A
+%% === FLOW ===
+    User -->|Accesses| Home
+    Home -->|Clicks “Login with Google / GitHub”| Security
+    Security -->|Redirects for Authentication| Providers
+    Providers -->|Returns OAuth Token + User Info| Security
+    Security --> Service
+    Service -->|Store or Update User| Repository
+    Repository --> DB
+    Controller -->|Render Profile Page| Profile
+    Profile --> User
 
-%% ==== EXTERNAL SERVICES ====
-E1[(Google OAuth2)]
-E2[(GitHub OAuth2)]
+
+
 ```
-
-
-
 
 ## Author
 
