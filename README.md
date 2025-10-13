@@ -1,109 +1,205 @@
-# OAuth2 Integration with Google & GitHub
+# OAuth2 Integration with GitHub & Google
 
-## 📘 Overview
-A Spring Boot application demonstrating OAuth2 login with Google and GitHub.  
-This project supports:
+A Spring Boot application that integrates **OAuth2 login** with Google and GitHub, and provides a minimal **user profile module**. This project demonstrates secure OAuth2 authentication, session-based security, and basic user management.
 
-- Automatic user provisioning on first login
-- Linking subsequent logins to the same user
-- Viewing and editing user profiles
+---
 
-## 🧩 Features
-- OAuth2 login with Google and GitHub
-- Auto-registration on first OAuth2 login
-- Session-based authentication (no JWT)
-- Profile management: view and update display name and bio
-- CSRF protection enabled on all forms
-- Error handling for failed logins and invalid form submissions
+## Features
 
-## 🗂️ Domain Model
+- OAuth2 login with **Google** and **GitHub**
+- First login automatically registers a new user
+- Subsequent logins map to the same user
+- User profile page:
+    - View `displayName`, `bio`, `avatar`, and email
+    - Edit `displayName` and `bio`
+- Session-based security
+- H2 in-memory database (development)
+- CSRF protection enabled
 
-### User
-- id
-- email
-- displayName
-- avatarUrl
-- bio
-- createdAt
-- updatedAt
+---
 
-### AuthProvider
-- id
-- userId → User
-- provider (GOOGLE | GITHUB)
-- providerUserId
-- providerEmail
+## Technology Stack
+
+- **Backend:** Spring Boot 3, Spring Security, Spring Data JPA
+- **Database:** H2 (dev), MySQL/PostgreSQL compatible
+- **Authentication:** OAuth2 Client (`spring-boot-starter-oauth2-client`)
+- **Frontend:** Thymeleaf templates
+- **Java Version:** JDK 21
+- **Build Tool:** Maven
+
+---
 
 ## Project Structure
-```text
-📂 oauth2integration/
-├─ 📂 src/
-│  └─ 📂 main/
-│     ├─ 📂 java/
-│     │  └─ 📂 edu/
-│     │     └─ 📂 cit/
-│     │        └─ 📂 johnjosephlaborada/
-│     │           └─ 📂 oauth2integration/
-│     │              ├─ 📂 controller/
-│     │              ├─ 📂 model/
-│     │              ├─ 📂 repository/
-│     │              └─ 📂 service/
-│     └─ 📂 resources/
-│        ├─ 📂 static/
-│        ├─ 📂 templates/
-│        └─ 📄 application.properties
-└─ 📄 pom.xml (or build.gradle)
+```
+oauth2-integration/
+├── src/
+│   └── main/
+│       ├── java/edu/cit/johnjosephlaborada/oauth2integration/
+│       │   ├── Oauth2IntegrationApplication.java
+│       │   ├── config/
+│       │   ├── controller/
+│       │   ├── service/
+│       │   ├── model/
+│       │   └── repository/
+│       └── resources/
+│           ├── templates/
+│           │   ├── home.html
+│           │   └── profile.html
+│           ├── static/
+│           └── application.properties
+├── mvnw
+├── mvnw.cmd
+├── pom.xml
+└── README.md
+```
+
+## Getting Started
+
+### Prerequisites
+
+- JDK 21 installed
+- Maven installed
+- IntelliJ IDEA or any IDE with environment variable support
+- Google OAuth2 client credentials (Client ID & Secret)
+- GitHub OAuth2 client credentials (Client ID & Secret)
+
+---
+
+### Setup
+
+#### Create Google Cloud OAuth2 Credentials
+
+1. Go to [Google Cloud Console](https://console.cloud.google.com/).
+2. Log in with your Google account (use your school Gmail if required).
+3. At the top, click **“Select a project” → “New Project”**
+    - Project name: `oauth2-login`
+    - Leave organization blank (if not required).
+    - Click **Create**, then **Select Project**.
+4. In the left sidebar, go to **APIs & Services → OAuth consent screen**
+    - Choose **External**
+    - Fill in:
+        - App name: `CIT OAuth2 Login`
+        - User support email: your Gmail
+        - Developer contact email: your Gmail
+    - Click **Save and Continue** (you can skip Scopes).
+5. Go to **Credentials → Create Credentials → OAuth client ID**
+    - Application type: **Web application**
+    - Name: `Spring OAuth2 Localhost`
+    - Authorized redirect URIs:
+      ```
+      http://localhost:8080/login/oauth2/code/google
+      ```
+6. Click **Create** → copy your **Client ID** and **Client Secret**.
+
+---
+
+#### Create GitHub OAuth2 Credentials
+
+1. Go to [GitHub Developer Settings → OAuth Apps](https://github.com/settings/developers).
+2. Click **New OAuth App**.
+3. Fill in the details:
+    - **Application name:** `Spring OAuth2 Integration`
+    - **Homepage URL:** `http://localhost:8080`
+    - **Authorization callback URL:**
+      ```
+      http://localhost:8080/login/oauth2/code/github
+      ```
+4. Click **Register Application** → copy your **Client ID** and **Client Secret**.
+
+---
+
+### Add Environment Variables
+
+Add these to your Run Configuration (IntelliJ): Replace the value with your actual client id and client secret
+
+```bash
+GOOGLE_CLIENT_ID=<your_google_client_id>
+GOOGLE_CLIENT_SECRET=<your_google_client_secret>
+GITHUB_CLIENT_ID=<your_github_client_id>
+GITHUB_CLIENT_SECRET=<your_github_client_secret>
+```
+
+## Running the Application
+
+### 1. Run the Spring Boot application:
+```bash
+mvn spring-boot:run
+```
+
+### 2. Open your browser and go to:
+```bash
+http://localhost:8080/
+```
+
+### 3. To access the H2 database console:
+```bash
+http://localhost:8080/h2-console
+```
+
+### H2 Settings:
+```bash
+spring.h2.console.path=/h2-console
+spring.datasource.url=jdbc:h2:mem:testdb
+spring.datasource.driver-class-name=org.h2.Driver
+spring.datasource.username=sa
+spring.datasource.password=
+```
+
+## API Endpoints
+| Method | Endpoint   | Description                           |
+|---------|-------------|---------------------------------------|
+| GET     | `/`         | Home page with Login options          |
+| GET     | `/profile`  | View logged-in user profile           |
+| POST    | `/profile`  | Update display name or bio            |
+| GET     | `/logout`   | Logout and redirect to home           |
+
+---
+
+## 🧩 Architecture Diagram
+
+```mermaid
+graph TD
+
+%% ==== CLIENT SIDE ====
+A[User Browser] -->|Accesses Home Page ("/")| B[Spring Boot Application]
+
+%% ==== BACKEND SPRING BOOT ====
+subgraph Backend [Spring Boot Application]
+    B -->|Thymeleaf Views| C[Home.html / Profile.html]
+
+    %% Authentication Flow
+    B -->|OAuth2 Redirect| D[Spring Security OAuth2 Client]
+    D -->|Authorize User| E1[Google OAuth2 Server]
+    D -->|Authorize User| E2[GitHub OAuth2 Server]
+    
+    %% After Login
+    D -->|User Info (email, name, avatar)| F[OAuth2UserService]
+    F -->|Check or Create Record| G[(MySQL / H2 Database)]
+    
+    %% Domain Model
+    G --> H[User Table\n(id, email, displayName, avatarUrl, bio, createdAt, updatedAt)]
+    G --> I[AuthProvider Table\n(id, userId, provider, providerUserId, providerEmail)]
+    
+    %% Profile Management
+    B -->|GET /profile, POST /profile| J[ProfileController]
+    J -->|Read/Update| G
+end
+
+%% ==== LOGOUT FLOW ====
+A -->|Logout (/logout)| B
+B -->|Invalidate Session & Redirect| A
+
+%% ==== EXTERNAL SERVICES ====
+E1[(Google OAuth2)]
+E2[(GitHub OAuth2)]
 ```
 
 
-## ⚙️ How to Run
 
-### 1️⃣ Configure Environment Variables
-Set the following in your IntelliJ Run Configuration or `.env` file:
-
-GOOGLE_CLIENT_ID=#YOUR_CLIENT_ID_GOOGLE
-GOOGLE_CLIENT_SECRET=#YOUR_CLIENT_SECRET_GOOGLE
-GITHUB_CLIENT_ID=#YOUR_CLIENT_ID_GITHUB
-GITHUB_CLIENT_SECRET=#YOUR_CLIENT_SECRET_GITHUB
-
-
-- Google: [https://console.cloud.google.com/](https://console.cloud.google.com/)
-- GitHub: [https://github.com/settings/developers](https://github.com/settings/developers)
-
-### 2️⃣ Run Application
-- Run the main class in Spring Boot via IntelliJ or use:  
-  mvn spring-boot:run
-
-### 3️⃣ Access Application
-- Open [http://localhost:8080](http://localhost:8080)
-
-## 🌐 Endpoints
-| Method | Endpoint    | Description                  | Auth Required |
-|--------|------------|------------------------------|---------------|
-| GET    | `/`        | Home with login buttons      | ❌            |
-| GET    | `/profile` | View own profile             | ✅            |
-| POST   | `/profile` | Update displayName, bio      | ✅            |
-| GET    | `/logout`  | Logout and redirect to home  | ✅            |
-
-## 📝 Notes
-- H2 used for development (in-memory). Use MySQL or PostgreSQL for persistent storage.
-- GitHub may not return email by default; the app fetches emails from `/user/emails`.
-- CSRF protection is enabled; all forms include a CSRF token.
-- Session-based authentication only (JWT not used).
-- Error handling included for invalid logins and profile updates.
-
-## 🏗️ Architecture Diagram
-*(Insert a simple diagram showing OAuth2 flow, services, controllers, and database here)*
-
-## 🏆 Milestones Achieved
-- Milestone 1: OAuth2 login works with one provider (Google or GitHub)
-- Milestone 2: Both providers work, user data persisted, profile page protected
-- Final: Profile editing, CSRF protection, error handling included
-
-## 🖼️ Screenshots
-*(Add screenshots of login pages and profile page here)*
 
 ## Author
-John Joseph Laborada  
-CIT-U | IT342 – System Integration & Architecture  
-October 2025
+
+**John Joseph Laborada**  
+BSIT - CIT-U  
+Submitted on: October 13, 2025
+
