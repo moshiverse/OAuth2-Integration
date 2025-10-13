@@ -198,6 +198,7 @@ graph TB
 ## Author
 
 **John Joseph Laborada**  
-BSIT - CIT-U  
-Submitted on: October 13, 2025
+BSIT - 4
+Cebu Institute of Technology - University
+October 13, 2025
 
