@@ -158,23 +158,24 @@ spring.datasource.password=
 
 ```mermaid
 graph TB
+
 %% === CLIENT SIDE ===
-    User["👤 User (Browser)"]
-    Home["🏠 GET / (Login Page)"]
-    Profile["👤 /profile (View & Edit Profile)"]
-    Logout["🚪 /logout (End Session)"]
+    User["User (Browser)"]
+    Home["GET / (home.html - Login Page)"]
+    Profile["/profile (View & Edit Profile)"]
+    Logout["/logout (End Session)"]
 
 %% === SPRING BOOT APPLICATION ===
-    subgraph SpringBootApp["🟢 Spring Boot Application"]
-        Controller["🌐 Controller<br>(HomeController, ProfileController)"]
-        Security["🔒 Spring Security<br>(OAuth2 Login Flow - Session Based)"]
-        Service["🧠 OAuth2UserService<br>(Processes & Maps User Info)"]
-        Repository["💾 JPA Repository<br>(UserRepository, AuthProviderRepository)"]
-        DB["🗄️ Database<br>(User, AuthProvider)"]
+    subgraph SpringBootApp["Spring Boot Application"]
+        Controller["Controllers<br>HomeController / ProfileController"]
+        Security["SecurityConfig<br>(Spring Security + OAuth2 Login Flow)"]
+        CustomService["CustomOAuth2UserService<br>(Extends DefaultOAuth2UserService)"]
+        Repositories["Repositories<br>UserRepository / AuthProviderRepository"]
+        Database["Database (H2 / MySQL)<br>• User<br>• AuthProvider"]
     end
 
 %% === OAUTH2 PROVIDERS ===
-    subgraph Providers["🌍 OAuth2 Providers"]
+    subgraph Providers["OAuth2 Providers"]
         Google["Google OAuth2"]
         GitHub["GitHub OAuth2"]
     end
@@ -182,11 +183,11 @@ graph TB
 %% === FLOW ===
     User -->|Access| Home
     Home -->|Login via Google/GitHub| Security
-    Security -->|Auth Redirect| Providers
+    Security -->|Redirect to Auth| Providers
     Providers -->|OAuth Token + User Info| Security
-    Security --> Service
-    Service -->|Save/Update User| Repository
-    Repository --> DB
+    Security --> CustomService
+    CustomService -->|Persist / Update User| Repositories
+    Repositories --> Database
     Controller -->|Render Profile| Profile
     Profile --> User
     User -->|Logout| Logout
