@@ -54,6 +54,14 @@ oauth2-integration/
 ```
 
 ## Getting Started
+
+### 🔽 Clone the Repository
+
+```bash
+git clone https://github.com/moshiverse/OAuth2-Integration.git
+cd oauth2integration
+```
+
 ### Prerequisites
 
 - JDK 21 installed
