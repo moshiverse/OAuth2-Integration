@@ -165,41 +165,28 @@ spring.datasource.password=
 ## 🧩 Architecture Diagram
 
 ```mermaid
-graph TB
-
-%% === CLIENT SIDE ===
-    User["User (Browser)"]
-    Home["GET / (home.html - Login Page)"]
-    Profile["/profile (View & Edit Profile)"]
-    Logout["/logout (End Session)"]
-
-%% === SPRING BOOT APPLICATION ===
-    subgraph SpringBootApp["Spring Boot Application"]
-        Controller["Controllers<br>HomeController / ProfileController"]
-        Security["SecurityConfig<br>(Spring Security + OAuth2 Login Flow)"]
-        CustomService["CustomOAuth2UserService<br>(Extends DefaultOAuth2UserService)"]
-        Repositories["Repositories<br>UserRepository / AuthProviderRepository"]
-        Database["Database (H2 / MySQL)<br>• User<br>• AuthProvider"]
+graph TD
+    subgraph Frontend
+        FE[ReactJS App]
     end
 
-%% === OAUTH2 PROVIDERS ===
-    subgraph Providers["OAuth2 Providers"]
-        Google["Google OAuth2"]
-        GitHub["GitHub OAuth2"]
+    subgraph Backend
+        BE[Spring Boot + Spring Security]
+        DB[(MySQL / PostgreSQL)]
+        %% H2 allowed for development only
     end
 
-%% === FLOW ===
-    User -->|Access| Home
-    Home -->|Login via Google/GitHub| Security
-    Security -->|Redirect to Auth| Providers
-    Providers -->|OAuth Token + User Info| Security
-    Security --> CustomService
-    CustomService -->|Persist / Update User| Repositories
-    Repositories --> Database
-    Controller -->|Render Profile| Profile
-    Profile --> User
-    User -->|Logout| Logout
-    Logout -->|Invalidate Session| Security
+    subgraph OAuth2 Providers
+        Google[Google OAuth2]
+        GitHub[GitHub OAuth2]
+    end
+
+    FE -->|Login Request| BE
+    BE -->|Fetch User Info / Persist| DB
+    BE -->|OAuth2 Flow| Google
+    BE -->|OAuth2 Flow| GitHub
+    FE -->|View/Edit Profile| BE
+    FE -->|Logout| BE
 
 ```
 
@@ -208,5 +195,5 @@ graph TB
 **John Joseph Laborada**  
 IT342 - G01          
 BSIT - 4                
-October 13, 2025
+October 12, 2025
 
