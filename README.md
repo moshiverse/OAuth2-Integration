@@ -167,17 +167,13 @@ spring.datasource.password=
 ```mermaid
 graph TD
     subgraph Frontend
-        FE[ReactJS App]
+        FE[Thymeleaf Templates]
     end
 
     subgraph Backend
         BE[Spring Boot + Spring Security]
-        DB[(MySQL / PostgreSQL)]
-<<<<<<< HEAD
-    %% H2 allowed for development only
-=======
-        %% H2 allowed for development only
->>>>>>> 4db5f903f4d0a1bd8bfd7d3200584c894fc41cbf
+        DB[(H2 / MySQL / PostgreSQL)]
+    %% H2 is for development only
     end
 
     subgraph OAuth2 Providers
@@ -186,11 +182,12 @@ graph TD
     end
 
     FE -->|Login Request| BE
-    BE -->|Fetch User Info / Persist| DB
+    BE -->|Fetch & Persist User| DB
     BE -->|OAuth2 Flow| Google
     BE -->|OAuth2 Flow| GitHub
     FE -->|View/Edit Profile| BE
     FE -->|Logout| BE
+
 
 ```
 
@@ -198,10 +195,5 @@ graph TD
 
 **John Joseph Laborada**  
 IT342 - G01          
-BSIT - 4                
-<<<<<<< HEAD
+BSIT - 4
 October 12, 2025
-=======
-October 12, 2025
-
->>>>>>> 4db5f903f4d0a1bd8bfd7d3200584c894fc41cbf
