@@ -173,7 +173,11 @@ graph TD
     subgraph Backend
         BE[Spring Boot + Spring Security]
         DB[(MySQL / PostgreSQL)]
+<<<<<<< HEAD
     %% H2 allowed for development only
+=======
+        %% H2 allowed for development only
+>>>>>>> 4db5f903f4d0a1bd8bfd7d3200584c894fc41cbf
     end
 
     subgraph OAuth2 Providers
@@ -195,4 +199,9 @@ graph TD
 **John Joseph Laborada**  
 IT342 - G01          
 BSIT - 4                
+<<<<<<< HEAD
 October 12, 2025
+=======
+October 12, 2025
+
+>>>>>>> 4db5f903f4d0a1bd8bfd7d3200584c894fc41cbf
